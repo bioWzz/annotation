@@ -1,4 +1,6 @@
+#detele the folder
 rm -rm foldername
+
 # load the package
 module load packageName
 module avial
