@@ -1,3 +1,6 @@
+#delete the file folder
+rm -rf foldername
+
 # load the package
 module load packageName
 module avial
