@@ -1,0 +1,37 @@
+#!/bin/sh
+#BSUB -J K4me3_0h
+#BSUB -P acc_sumo
+#BSUB -q premium
+#BSUB -n 20
+#BSUB -W 100:00
+#BSUB -R rusage[mem=10000]
+#BSUB -m mothra
+#BSUB -o %J.stdout
+#BSUB -eo %J.stderr
+##############################################################################################################################################
+# having the fastq files and processiong them,and converting them to igv tool input files
+module load bowtie2
+module load samtools
+module load bedtools
+bowtie2 --rg-id 1 --rg SM:Pool1 --rg PL:Illumina -p 8 --sensitive -x /sc/orga/projects/sumo/jusual/NEW/pipeline/ngs-tools/pipelines/bowtie2/hg19 -U K4me3_0h.fastq -S K4me3_0h.sam
+samtools view -S -b K4me3_0h.sam>K4me3_0h.bam
+samtools sort K4me3_0h.bam K4me3_0h.sort
+samtools index K4me3_0h.sort.bam
+
+bedtools bamtobed -i K4me3_0h.sort.bam>K4me3_0h.bed
+genomeCoverageBed -ibam K4me3_0h.sort.bam -g /sc/orga/projects/sumo/jusual/NEW/pipeline/ngs-tools/pipelines/hg19.txt -bg>K4me3_0h.hg19.bedgraph
+
+bedtools slop -i K4me3_0h.bed -g /sc/orga/projects/sumo/jusual/NEW/pipeline/ngs-tools/pipelines/hg19.txt -l 0 -r 450 -s>K4me3_0h.re.bed
+bedtools bedtobam -i K4me3_0h.re.bed -g /sc/orga/projects/sumo/jusual/NEW/pipeline/ngs-tools/pipelines/hg19.txt>K4me3_0h.extended_temp.bam
+genomeCoverageBed -ibam K4me3_0h.extended_temp.bam -g /sc/orga/projects/sumo/jusual/NEW/pipeline/ngs-tools/pipelines/hg19.txt -bg>K4me3_0h.extend.bedgraph
+
+bedGraphToBigWig K4me3_0h.hg19.bedgraph /sc/orga/projects/sumo/jusual/NEW/pipeline/ngs-tools/pipelines/hg19.txt K4me3_0h.bw 
+
+##############################################################################################################################################
+# having the bed files,and converting it to bai files which igv tool can show. the bai and sort.bam are the input files of igv tools
+module load samtools
+module load bedtools
+bedToBam -i GSM874647_GroSeq_sample1_rmdup_merged.bam.bed -g human.hg18.genome -bed12 > gro0.bam
+samtools sort gro0.bam gro0.sort
+samtools index gro0.sort.bam
+
